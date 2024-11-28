@@ -1,5 +1,6 @@
 import numpy as np
 from layer import Layer
+from activationlayer import ActivationLayer
 from error import Error
 
 class Network:
@@ -15,9 +16,14 @@ class Network:
         # Initialize each layer with input and output dimensions
         fitted_layers = []  # Placeholder for Layer objects
         for output_dim in self.layers:
-            layer = Layer(input_dim, output_dim)  # Create a Layer object
+            if type(output_dim) == int:
+                layer = Layer(input_dim, output_dim)  # Create a Layer object
+                input_dim = output_dim  # Update input dimension for the next layer
+            elif type(output_dim) == str:
+                activation = output_dim
+                layer = ActivationLayer(activation)  # Create an ActivationLayer object
+            
             fitted_layers.append(layer)
-            input_dim = output_dim  # Update input dimension for the next layer
         self.layers = fitted_layers  # Replace the original list with actual Layer instances
 
     def train(self, train_data, Y_true, error='mse', epochs=100, lr=0.01):
@@ -57,23 +63,27 @@ class Network:
 
 
 if __name__ == '__main__':
-    # Example data
+    # Example on AND gate
     input_dim = 2
     output_dim = 1
-    train_data = np.array([[1, 1]])  # Input data (shape: [1, input_dim])
-    Y_true = np.array([[0.5]])       # True output data (shape: [1, output_dim])
+    
+    # AND Gate.
+    train_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    Y_true = np.array([[0], [0], [0], [1]])
 
     # Initialize the model and add layers
     my_model = Network()
-    my_model.add(64)   # First hidden layer with 64 neurons
-    my_model.add(output_dim)  # Output layer with 1 neuron
-
+    my_model.add(4)   # First hidden layer with 4 neurons
+    my_model.add('relu')
+    my_model.add(1)   # Output layer with 1 neuron
+    my_model.add('sigmoid') 
+    
     # Fit the model with the specified input dimension
     my_model.fit(input_dim)
 
     # Train the model
-    my_model.train(train_data, Y_true, error='mse', epochs=100, lr=0.001)
+    my_model.train(train_data, Y_true, error='mse', epochs=5000, lr=0.01)
 
-    print(my_model.forward(train_data))
+    print(my_model.forward(train_data).round())
 
     
