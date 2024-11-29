@@ -18,6 +18,7 @@
 - ✅ **Entraînement** des réseaux de neurones:
   - **Propagation avant** et **rétropropagation** pour l'entraînement des modèles.
   - Mise à jour des poids et des biais à l'aide de la **descente de gradient**.
+- ✅ **Sauvegarder & Charger** des modèles déjà entrainés. Le format de sauvegarde des modèles est `json`.
 
 ---
 
@@ -28,7 +29,7 @@ Pour utiliser ce framework, assurez-vous d'avoir **Python 3.x** installé sur vo
 ```bash
 git clone git@github.com:EliottJVN/Quasar_Framework.git
 cd Quasar_Framework
-pip install numpy
+pip install numpy json
 ```
 
 ---
