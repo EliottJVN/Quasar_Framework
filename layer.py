@@ -15,6 +15,10 @@ class Layer:
         self.grad_W = np.zeros((input_layer, output_layer))
         self.grad_B = np.zeros((1, output_layer))
 
+    def __str__(self) -> str:
+        """Return a string representation of the layer."""
+        return f"Linear Layer: {self.input_layer} -> {self.output_layer}"
+    
     def forward(self, X):
         """Forward propagation."""
         self.X = X
@@ -39,6 +43,22 @@ class Layer:
         # Reset gradients.
         self.grad_W = np.zeros((self.input_layer, self.output_layer))
         self.grad_B = np.zeros((1, self.output_layer))
+
+    def to_dict(self):
+        return {
+            "type": "Layer",
+            "input_dim": self.input_layer,
+            "output_dim": self.output_layer,
+            "weights": self.W.tolist(),  
+            "biases": self.B.tolist()    
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        layer = Layer(data['input_dim'], data['output_dim'])
+        layer.W = np.array(data['weights'])   # Rebuild Weights
+        layer.B = np.array(data['biases'])    # Rebuild Biases
+        return layer
 
     
 if __name__ == '__main__':

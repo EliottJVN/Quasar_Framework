@@ -1,4 +1,6 @@
 import numpy as np
+import json
+
 from layer import Layer
 from activationlayer import ActivationLayer
 from error import Error
@@ -8,6 +10,15 @@ class Network:
         self.unfit_layers = []
         self.layers = []
     
+    def __str__(self) -> str:
+        """Print the Network structure"""
+        display = '='*50 + '\n'
+        for i, layer in enumerate(self.layers):
+            display += f'{i+1} layer: {layer}\n'
+        display += '='*50
+
+        return display
+
     def add(self, layer):
         """Add an uninitialized layer with the specified number of neurons."""
         self.layers.append(layer)
@@ -26,7 +37,8 @@ class Network:
             fitted_layers.append(layer)
         self.layers = fitted_layers  # Replace the original list with actual Layer instances
 
-    def train(self, train_data, Y_true, error='mse', epochs=100, lr=0.01):
+
+    def train(self, train_data, Y_true, error='mse', epochs=100, lr=0.01, save=True):
         """Train the network with the specified data, error function, epochs, and learning rate."""
         for epoch in range(epochs):
             # Forward pass
@@ -39,7 +51,8 @@ class Network:
             pad = len(str(epochs))
             print(f"Epoch: {epoch + 1:>{pad}}/{epochs:<{pad}} | Loss {error}: {loss:.6e} | Learning Rate: {lr}")
 
-
+        self.save() if save else None
+    
     def forward(self, data):
         """Forward propagate through all layers of the network."""
         for layer in self.layers:
@@ -61,29 +74,53 @@ class Network:
 
         return value_error  # Return error value to monitor during training
 
+    def predict(self, data):
+        """Make predictions on the input data."""
+        return self.forward(data)
+    
+    def save(self, filename:str=None):
+        """Save the network to a file
+        Args:
+        filename (str): The filename to save the network to. If None, the network will be
+        saved to a file named 'network.json' in the current directory.
+        """
+        if filename is None:
+            filename = 'network.json'
+        data = {
+            'layers': [layer.to_dict() for layer in self.layers]
+        }
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    @staticmethod
+    def load(filename:str):
+        """Load the network from a file
+        Args:
+        filename (str): The filename to load the network from.
+        """
+        with open(filename, 'r') as f:
+            data = json.load(f)
+        model = Network()
+        model.layers = [model._create_layer(layer_data) for layer_data in data['layers']]
+        return model
+
+    def _create_layer(self, layer_data):
+        if layer_data['type'] == 'Layer':
+            return Layer.from_dict(layer_data)
+        elif layer_data['type'] == 'ActivationLayer':
+            return ActivationLayer.from_dict(layer_data)
+        else:
+            raise ValueError(f"Type de couche inconnu : {layer_data['type']}")
 
 if __name__ == '__main__':
-    # Example on AND gate
-    input_dim = 2
-    output_dim = 1
-    
-    # AND Gate.
-    train_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    Y_true = np.array([[0], [0], [0], [1]])
-
-    # Initialize the model and add layers
+    input_dim = 8
+    # Example usage
     my_model = Network()
     my_model.add(4)   # First hidden layer with 4 neurons
     my_model.add('relu')
-    my_model.add(1)   # Output layer with 1 neuron
-    my_model.add('sigmoid') 
-    
-    # Fit the model with the specified input dimension
     my_model.fit(input_dim)
+    my_model.save()
 
-    # Train the model
-    my_model.train(train_data, Y_true, error='mse', epochs=5000, lr=0.01)
-
-    print(my_model.forward(train_data).round())
-
-    
+    file = 'network.json'
+    model = Network.load(file)
+    print(model)

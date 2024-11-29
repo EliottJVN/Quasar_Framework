@@ -2,6 +2,7 @@ import numpy as np
 
 class ActivationLayer:
     def __init__(self, activation):
+        self.act = activation
         activations = {
             'sigmoid': sigmoid,
             'relu': relu,
@@ -17,6 +18,9 @@ class ActivationLayer:
         self.activation = activations.get(activation, None)     # get the activation function
         self.activation_prime = activations_prime.get(activation, None)     # get the derivative of the activation function
     
+    def __str__(self) -> str:
+        return f"Activation Layer: {self.act}"
+    
     def forward(self, X):
         self.X = X
         self.Y = self.activation(self.X)
@@ -26,6 +30,14 @@ class ActivationLayer:
         # Multiplie le gradient par la dérivée de l'activation
         return grad_output * self.activation_prime(self.X)
 
+    def to_dict(self):
+        return {
+            "type": "ActivationLayer",
+            "activation": self.act
+        }
+    
+    def from_dict(data):
+        return ActivationLayer(data['activation'])
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
