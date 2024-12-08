@@ -6,37 +6,28 @@ from activationlayer import ActivationLayer
 from error import Error
 
 class Network:
-    def __init__(self):
+    def __init__(self, layers:list=None):
         self.unfit_layers = []
         self.layers = []
-    
+        
+        if not layers is None:
+            self.layers = layers
+            
     def __str__(self) -> str:
         """Print the Network structure"""
         display = '='*50 + '\n'
         for i, layer in enumerate(self.layers):
-            display += f'{i+1} layer: {layer}\n'
+            display += f'{i+1}. {layer}\n'
         display += '='*50
 
         return display
 
     def add(self, layer):
-        """Add an uninitialized layer with the specified number of neurons."""
-        self.layers.append(layer)
-
-    def fit(self, input_dim):
-        # Initialize each layer with input and output dimensions
-        fitted_layers = []  # Placeholder for Layer objects
-        for output_dim in self.layers:
-            if type(output_dim) == int:
-                layer = Layer(input_dim, output_dim)  # Create a Layer object
-                input_dim = output_dim  # Update input dimension for the next layer
-            elif type(output_dim) == str:
-                activation = output_dim
-                layer = ActivationLayer(activation)  # Create an ActivationLayer object
-            
-            fitted_layers.append(layer)
-        self.layers = fitted_layers  # Replace the original list with actual Layer instances
-
+        """Add a layer to the network."""
+        try:
+            self.layers.append(layer)
+        except:
+            raise ValueError("Invalid layer type. Must be Layer (for dense layers) or ActivationLayer (for activation layers).")
 
     def train(self, train_data, Y_true, error='mse', epochs=100, lr=0.01, save=True):
         """Train the network with the specified data, error function, epochs, and learning rate."""
@@ -111,16 +102,3 @@ class Network:
             return ActivationLayer.from_dict(layer_data)
         else:
             raise ValueError(f"Type de couche inconnu : {layer_data['type']}")
-
-if __name__ == '__main__':
-    input_dim = 8
-    # Example usage
-    my_model = Network()
-    my_model.add(4)   # First hidden layer with 4 neurons
-    my_model.add('relu')
-    my_model.fit(input_dim)
-    my_model.save()
-
-    file = 'network.json'
-    model = Network.load(file)
-    print(model)

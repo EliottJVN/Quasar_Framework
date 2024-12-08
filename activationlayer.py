@@ -1,25 +1,33 @@
 import numpy as np
+from activationfunctions import *
 
 class ActivationLayer:
-    def __init__(self, activation):
-        self.act = activation
+    def __init__(self, activation_name, **kwargs):
+        self.params = kwargs  # Garde une trace des paramètres
+        self.act = activation_name
+        
+        # Dictionnaire des activations avec paramètres personnalisés
         activations = {
-            'sigmoid': sigmoid,
-            'relu': relu,
-            'tanh': tanh,
-            'softmax': softmax
+            'sigmoid': Sigmoid(),
+            'relu': ReLU(),
+            'leakyrelu': LeakyReLU(**kwargs),  # Passe les paramètres comme alpha
+            'elu': ELU(**kwargs),
+            'swish': Swish(),
+            'tanh': Tanh(),
+            'softmax': Softmax(),
+            'gelu': GELU(),
+            'selu': SELU(),
         }
-        activations_prime = {
-            'sigmoid': sigmoid_prime,
-            'relu': relu_prime,
-            'tanh': tanh_prime,
-            'softmax': softmax_prime
-        }
-        self.activation = activations.get(activation, None)     # get the activation function
-        self.activation_prime = activations_prime.get(activation, None)     # get the derivative of the activation function
-    
-    def __str__(self) -> str:
-        return f"Activation Layer: {self.act}"
+        
+        activation_instance = activations.get(activation_name)
+        if not activation_instance:
+            raise ValueError(f"Activation '{activation_name}' non supportée.")
+        
+        self.activation = activation_instance.activation
+        self.activation_prime = activation_instance.derivative
+
+    def __str__(self):
+        return f"Activation Layer: {self.act}, Params: {self.params}"
     
     def forward(self, X):
         self.X = X
@@ -33,35 +41,9 @@ class ActivationLayer:
     def to_dict(self):
         return {
             "type": "ActivationLayer",
-            "activation": self.act
+            "activation": self.act,
+            "params": self.params
         }
     
     def from_dict(data):
-        return ActivationLayer(data['activation'])
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-def sigmoid_prime(x):
-    x = sigmoid(x)
-    return x * (1 - x)
-
-def relu(x):
-    return np.maximum(0, x)
-
-def relu_prime(x):
-    return np.where(x > 0, 1, 0)
-
-def tanh(x):
-    return np.tanh(x)
-
-def tanh_prime(x):
-    return 1 - np.tanh(x)**2
-
-def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=-1, keepdims=True)
-
-def softmax_prime(x):
-    s = softmax(x).reshape(-1, 1)
-    return np.diagflat(s) - np.dot(s, s.T)  # Jacobian of the softmax
+        return ActivationLayer(data['activation'], **data['params'])
